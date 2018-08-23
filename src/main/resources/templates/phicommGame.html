@@ -1,0 +1,222 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"  
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3"> 
+	<head>
+		<meta charset="utf-8" />
+		<title>斐讯橙子游戏</title>
+		<meta name="description" content="斐讯橙子游戏" />
+		<meta name="keywords" content="斐讯 新版 官网 自动 抢购 脚本 返利 代码 秒杀 快速 软件 程序 phicomm PHICOMM 天天牛">
+		<link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	</head>
+	<body>
+		<div class="container">
+			<div class="panel panel-default">
+			  <!-- Default panel contents -->
+				<div class="panel-heading"><label>说明：网站请使用<a target="_blank" href="https://www.baidu.com/s?wd=chrome">Chrome浏览器</a>,QQ群:&nbsp;<a target="_blank" href="//shang.qq.com/wpa/qunwpa?idkey=8f2c95fe6cc74dc456e79daede54cf9e66739c2329c8827c53d5cc863e1343e6"><img border="0" src="//pub.idqqimg.com/wpa/images/group.png" alt="斐讯交流群2" title="斐讯交流群2"></a></label><label id="infoInput" style="float:right"></label></div>
+				<div class="panel-body">
+				<table class="table" border="0">
+					<tr>
+						<td><label>手机号：</label></td>
+						<td><input id="phone" type="text" class="form-control" maxlength="11" onchange="changeValue(this.value , 'confirmPhone','html')" ></td>
+					</tr>
+					<tr>
+						<td><label>密码：</label></td>
+						<td><input type="text" class="form-control" onchange="changeValue(this.value , 'confirmPassword','html')"></td>
+					</tr>
+					<tr>
+						<td><label>分数：</label></td>
+						<td>
+							<div class="col-sm-3" style="padding: 0px;">
+								<input id="number" type="number" class="form-control" max="330" min="1" value="290" onchange="this.value=this.value.replace(/\D/g,'');this.value=this.value?((this.value<1||this.value>330)?290:this.value):290;changeValue(this.value,'confirmNumber' , 'html');" >
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<td><label></label></td>
+						<td>
+							<button type="button" id="startProcess" data-toggle="modal"  data-loading-text="处理中..." class="btn btn-primary"  onclick="confirmDialog()" autocomplete="off">
+							  开始
+							</button>
+						</td>
+					</tr>
+				</table>
+			  </div>
+			</div>
+			
+			<div class="panel panel-default">
+			  <!-- Default panel contents -->
+			  <div class="panel-heading"><label>输出：</label></div>
+			  	<form role="form">
+				  <div class="form-group">
+				    <textarea id="buyInfo" class="form-control" rows="8"></textarea>
+				  </div>
+				</form> 
+			</div>
+
+			<div class="panel panel-default">
+				<!-- Default panel contents -->
+				<div class="panel-heading"><label>其他功能：</label></div>
+				<form role="form">
+					<div class="form-group" style="padding: 10px;">
+						<button type="button" data-loading-text="处理中..." class="btn btn-warning" autocomplete="off" onclick="window.open('/phicomm/front');">
+							斐讯抢购
+						</button>
+						<button type="button" data-loading-text="处理中..." class="btn btn-success" autocomplete="off" onclick="window.open('/phicomm/front/getSku');">
+							库存查看
+						</button>
+						<button type="button" data-loading-text="处理中..." class="btn btn-info" autocomplete="off" onclick="window.open('/phicomm/front/gameDDCow');">
+							天天牛
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+		
+		<!-- confirm pay Modal -->
+		<div class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+		  <div class="modal-dialog" role="document">
+			<div class="modal-content">
+			  <div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h4 class="modal-title" id="myModalLabel">信息确认</h4>
+			  </div>
+			  <div class="modal-body">
+				<table class="table">
+					<tr>
+						<td>用户信息</td>
+						<td><label id="confirmPhone"></label>&nbsp;|&nbsp;<label id="confirmPassword" ></label></td>
+					</tr>
+					<tr>
+						<td>分数</td>
+						<td><label id="confirmNumber">290</label></td>
+					</tr>
+				</table>
+			  </div>
+			  <div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+				<button type="button" class="btn btn-primary" id="confirm" data-loading-text="处理中..." >确认</button>
+			  </div>
+			</div>
+		  </div>
+		</div>
+
+
+
+		<script src="https://cdn.bootcss.com/jquery/1.11.3/jquery.min.js"></script>
+		<script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+		<script>
+		  var phicommBuyConfig = {};
+		  var scoreInfoInterval = null;
+		  var getScoreInfoSwitch = true;
+
+		  $(function(){
+			 $('#confirm').on('click', function () {
+				$('#startProcess').button('loading');
+				$(this).button('loading');
+				$.ajax({
+					url:"/phicomm/front/game/playGame",
+					data : phicommBuyConfig,
+					type : "POST",
+					dataType : "json",
+					success:function(result){
+						$('#buyInfo').val("");
+						if(result.status == 'success'){
+                            scoreInfoInterval = setInterval(function(){
+								if(getScoreInfoSwitch){
+									$.ajax({
+										url:"/phicomm/front/game/getGameResult",
+										data : "phone=" + phicommBuyConfig.phone,
+										type : "POST",
+										dataType : "json",
+										success:function(result){
+											if(result.message && $.trim(result.message) != ''){
+												var psconsole = $('#buyInfo');
+												psconsole.val(psconsole.val() + result.message);
+											    if(psconsole.length){
+											       psconsole.scrollTop(psconsole[0].scrollHeight - psconsole.height());
+											    }
+											    if(result.message.indexOf("查询游戏分数成功") > -1
+											    		|| result.message.indexOf('密码错误') > -1
+											    		|| result.message.indexOf('token') > -1
+											    		|| result.message.indexOf('网站升级') > -1
+											    		|| result.message.indexOf('抢购网站升级') > -1
+											    		|| result.message.indexOf('Could not connect to the database') > -1
+											    		|| result.message.indexOf('不存在') > -1){
+                                                    clearInterval(scoreInfoInterval);
+											    	$('#confirm').button('reset');
+										            $('#startProcess').button('reset');
+											    }
+											}
+										},
+										error:function(xhr,status,error){
+											alert("游戏失败！");
+											$('#confirm').button('reset');
+								            $('#startProcess').button('reset');
+										}
+									});
+								}
+							},3000);
+						}else{
+							$('#confirm').button('reset');
+				            $('#startProcess').button('reset');
+						}
+						alert(result.message);
+					},
+					error:function(xhr,status,error){
+						$('#confirm').button('reset');
+			            $('#startProcess').button('reset');
+						alert("失败，请重试！");
+					}
+				});
+				$('#confirmModal').modal('hide');
+			 });
+		  });
+
+		  function confirmDialog(){
+			var buyPhone = $.trim($("#confirmPhone").html());
+			var buyPassword = $.trim($("#confirmPassword").html());
+			var gameScore = $.trim($("#confirmNumber").html())?parseInt($.trim($("#confirmNumber").html())) : 1;
+			if(!buyPhone){
+			  alert("手机号不能为空！");
+			  return false;
+			}else if(!buyPassword){
+			  alert("密码不能为空！");
+			  return false;
+			}else if(gameScore < 1 || gameScore > 330){
+			    alert("数量不在范围1~330");
+			    return false;
+			}
+			phicommBuyConfig.phone = buyPhone;
+			phicommBuyConfig.password = buyPassword;
+			phicommBuyConfig.gameScore = gameScore;
+			$('#confirmModal').modal('show');
+		  }
+		  
+		  function changeValue(value , targetId , properties , clearIds){
+		    if(properties == 'html'){
+			  $("#" + targetId).html(value);
+			}else if(properties == 'value'){
+			  $("#" + targetId).val(value);
+			}else{
+			  alert("未实现changeValue!");
+			}
+			if(clearIds){
+			  var clears = clearIds.split(',');
+			  for(var index in clears){
+			    $("#"+clears[index]).val('');
+				$("#"+clears[index]).html('');
+			  }
+			}
+		  }
+		
+		</script>
+		<script>
+            var _hmt = _hmt || [];
+            (function() {
+                var hm = document.createElement("script");
+                hm.src = "https://hm.baidu.com/hm.js?bf9d14e2f2171cd029685ab086e29339";
+                var s = document.getElementsByTagName("script")[0];
+                s.parentNode.insertBefore(hm, s);
+            })();
+		</script>
+	</body>
+</html>

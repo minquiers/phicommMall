@@ -1,0 +1,84 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"  
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3"> 
+	<head>
+		<meta charset="utf-8" />
+		<title>斐讯库存监控</title>
+		<meta name="description" content="斐讯库存监控" />
+		<meta name="keywords" content="斐讯 新版 官网 自动 抢购 脚本 返利 代码 秒杀 快速 软件 程序 phicomm PHICOMM 天天牛">
+		<link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	</head>
+	<body>
+		<div class="container">
+			<nav class="navbar-default navbar-fixed-top" id="nav">
+				<div class="container">
+					<a onclick="$('#nav').hide();"  class="label label-danger" style="float:right">隐藏</a>
+					<a href="/phicomm/front/game"  target="_blank" class="label label-warning" style="float:right">橙子游戏</a>
+					<a href="/phicomm/front" target="_blank" class="label label-success" style="float:right">斐讯抢购</a>
+					<a href="/phicomm/front/gameDDCow" target="_blank" class="label btn-info" style="float:right">天天牛</a>
+					<span class="label label-default" style="float:right">提示：库存每10分钟更新一次&nbsp;</span>
+				</div>
+			</nav>
+			<div class="row" id="sku">
+			</div>
+		</div>
+		<script src="https://cdn.bootcss.com/jquery/1.11.3/jquery.min.js"></script>
+		<script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+		<script th:inline="javascript">
+            /*<![CDATA[*/
+            var skuList = /*[[${skuList}]]*/ ;
+            /*]]>*/
+
+            function dateFtt(fmt,date)
+            { //author: meizz
+                var o = {
+                    "M+" : date.getMonth()+1,                 //月份
+                    "d+" : date.getDate(),                    //日
+                    "H+" : date.getHours(),                   //小时
+                    "m+" : date.getMinutes(),                 //分
+                    "s+" : date.getSeconds(),                 //秒
+                    "q+" : Math.floor((date.getMonth()+3)/3), //季度
+                    "S"  : date.getMilliseconds()             //毫秒
+                };
+                if(/(y+)/.test(fmt))
+                    fmt=fmt.replace(RegExp.$1, (date.getFullYear()+"").substr(4 - RegExp.$1.length));
+                for(var k in o)
+                    if(new RegExp("("+ k +")").test(fmt))
+                        fmt = fmt.replace(RegExp.$1, (RegExp.$1.length==1) ? (o[k]) : (("00"+ o[k]).substr((""+ o[k]).length)));
+                return fmt;
+            }
+
+
+            $(function(){
+                if(null != skuList && skuList.length > 0){
+					var html = '';
+					for(var index in skuList){
+						var sku = skuList[index];
+						if(sku.sku < 0){
+						    sku.sku = 0;
+						}
+                        sku.sku = "<font class='alert-info'>"+sku.sku+"</font>";
+                        if(sku.skuStatus == 0){
+                            sku.skuStatus = "<font class='alert-warning'>无库存</font>";
+						}else if(sku.skuStatus == 1){
+						    sku.skuStatus = "<font class='alert-success'>有库存</font>";
+						}else{
+						    sku.skuStatus = "<font class='alert-danger'>已下架</font>";
+						}
+						html += "<div class='col-xs-6 col-md-4'><a href='http://minquiers.com' class='thumbnail' target='_blank'><img title='立即抢购' src='"+ sku.imgSrc +"' alt='"+ sku.name + sku.color +"'></a><div class='caption'><h3>"+ sku.name + sku.color +"</h3><p>状态:"+ sku.skuStatus +"&nbsp;库存:"+ sku.sku +"&nbsp;<br />更新时间:"+dateFtt('yyyy-MM-dd HH:mm:ss',new Date(sku.skuQueryDate)) +"</p></div></div>";
+					}
+					$("#sku").html(html);
+				}
+			});
+		</script>
+		
+		<script>
+            var _hmt = _hmt || [];
+            (function() {
+                var hm = document.createElement("script");
+                hm.src = "https://hm.baidu.com/hm.js?bf9d14e2f2171cd029685ab086e29339";
+                var s = document.getElementsByTagName("script")[0];
+                s.parentNode.insertBefore(hm, s);
+            })();
+		</script>
+	</body>
+</html>

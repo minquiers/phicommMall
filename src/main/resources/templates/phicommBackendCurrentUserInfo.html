@@ -1,0 +1,189 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"  
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3"> 
+<head>
+<meta charset="utf-8" />
+<title></title>
+<link rel="stylesheet"
+	href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css">
+</head>
+<body>
+	<div class="container">
+		<div class="panel panel-default">
+			<!-- Default panel contents -->
+			<div class="panel-heading">
+				<label>购买信息</label>
+			</div>
+			<div class="panel-body">
+				<table id="buy" class="table" border="0">
+					<tr>
+						<td>序号</td>
+						<td>IP</td>
+						<td>手机号</td>
+						<td>密码</td>
+						<td>购买产品</td>
+						<td>操作</td>
+					</tr>
+				</table>
+			</div>
+		</div>
+
+		<div class="panel panel-default">
+			<!-- Default panel contents -->
+			<div class="panel-heading">
+				<label>橙子游戏信息</label>
+			</div>
+			<div class="panel-body">
+				<table id="game" class="table" border="0">
+					<tr>
+						<td>序号</td>
+						<td>IP</td>
+						<td>手机号</td>
+						<td>密码</td>
+						<td>-</td>
+						<td>操作</td>
+					</tr>
+				</table>
+			</div>
+		</div>
+		
+		<div class="panel panel-default">
+			<!-- Default panel contents -->
+			<div class="panel-heading">
+				<label>天天牛信息</label>
+			</div>
+			<div class="panel-body">
+				<table id="ddCow" class="table" border="0">
+					<tr>
+						<td>序号</td>
+						<td>IP</td>
+						<td>手机号</td>
+						<td>密码</td>
+						<td>-</td>
+						<td>操作</td>
+					</tr>
+				</table>
+			</div>
+		</div>
+
+	</div>
+
+
+
+
+
+	<script src="https://cdn.bootcss.com/jquery/1.11.3/jquery.min.js"></script>
+	<script
+		src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<script src="http://libs.baidu.com/json/json2/json2.js"></script>
+	<script>
+		$(function() {
+			currentUserInfo();
+		});
+
+		function currentUserInfo() {
+			$.ajax({
+				url : "/phicomm/backend/currentUserInfo",
+				type : "post",
+				dataType : "json",
+				success : function(result) {
+					if (result.status == 'success' && null != result.result) {
+						if(null != result.result.buy && result.result.buy.length > 0){
+                            for ( var index in result.result.buy) {
+                                var phicommBuyInfo = result.result.buy[index];
+                                addToTable("#buy tr:last" , phicommBuyInfo, (parseInt(index) + 1),'BUY');
+                            }
+						}
+                        if(null != result.result.game && result.result.game.length > 0){
+                            for ( var index in result.result.game) {
+                                var phicommBuyInfo = result.result.game[index];
+                                addToTable("#game tr:last" , phicommBuyInfo, (parseInt(index) + 1),'GAME');
+                            }
+                        }
+                        if(null != result.result.ddCow && result.result.ddCow.length > 0){
+                            for ( var index in result.result.ddCow) {
+                                var phicommBuyInfo = result.result.ddCow[index];
+                                addToTable("#ddCow tr:last" , phicommBuyInfo, (parseInt(index) + 1),'DDCOW');
+                            }
+                        }
+					}
+				},
+				error : function(xhr, status, error) {
+					alert("加载默认数据失败。");
+				}
+			});
+		}
+
+		function removePhone(phone , type) {
+			$.ajax({
+				url : "/phicomm/backend/removePhone",
+				type : "post",
+				data : {"phone" : phone , "type" : type},
+				dataType : "json",
+				success : function(result) {
+					alert(result.message);
+					window.location.reload(true);
+				},
+				error : function(xhr, status, error) {
+					alert("停止指定手机抢购失败。");
+				}
+			});
+		}
+
+        function disabledPhone(phone , type) {
+            $.ajax({
+                url : "/phicomm/backend/disabledPhone",
+                type : "post",
+                data : {"limitPhone" : phone , "type" : type},
+                dataType : "json",
+                success : function(result) {
+                    alert(result.message);
+                    window.location.reload(true);
+                },
+                error : function(xhr, status, error) {
+                    alert("限制手机失败。");
+                }
+            });
+        }
+
+		function disabledIP(ip) {
+			$.ajax({
+				url : "/phicomm/backend/disabledIP",
+				type : "post",
+				data : {"limitIp" : ip},
+				dataType : "json",
+				success : function(result) {
+					alert(result.message);
+                    window.location.reload(true);
+				},
+				error : function(xhr, status, error) {
+					alert("限制IP失败。");
+				}
+			});
+		}
+
+		function addToTable(position ,phicommBuyInfo, index , type) {
+			var lastTr = $(position);
+			var tr = "<tr><td>"
+					+ index
+					+ "</td><td>"
+					+ phicommBuyInfo.ip
+					+ "</td><td>"
+					+ phicommBuyInfo.phone
+					+ "</td><td>"
+					+ phicommBuyInfo.password
+					+ "</td><td>"
+					+ phicommBuyInfo.fastBuyPage
+					+ "</td><td><input type='button' class='btn btn-primary' onclick=\"removePhone('"
+					+ phicommBuyInfo.phone
+					+ "','"+type+"')\" value='移除' />"
+					+ "<input class='btn btn-primary' type='button' onclick=\"disabledPhone('"
+					+ phicommBuyInfo.phone + "','"+type+"')\" value='限制手机' />"
+					+ "<input class='btn btn-primary' type='button' onclick=\"disabledIP('"
+					+ phicommBuyInfo.ip + "')\" value='限制IP' /></td></tr>"
+			if (tr && tr != '') {
+				lastTr.after(tr);
+			}
+		}
+	</script>
+</body>
+</html>

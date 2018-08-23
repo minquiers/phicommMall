@@ -1,0 +1,180 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"  
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3"> 
+<head>
+<meta charset="utf-8" />
+<title></title>
+<link rel="stylesheet"
+	href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css">
+</head>
+<body>
+	<div class="container">
+		<div class="panel panel-default">
+			<!-- Default panel contents -->
+			<div class="panel-heading">
+				<label>后台服务</label>
+			</div>
+			<div class="panel-body">
+				<form id="backendParamsForm">
+					<table id="table" class="table" border="0">
+						<tr>
+							<td width="1%"></td>
+							<td width="13%"></td>
+							<td><input type="button" class="btn btn-primary"
+								onclick="updateConfig(true)" value="更新(通知所有用户)" />&nbsp;&nbsp;
+								<input type="button" class="btn btn-primary"
+									   onclick="updateConfig(false)" value="更新(不通知用户)" />&nbsp;&nbsp;
+								<input type="button" class="btn btn-primary"
+								onclick="saveServerInfo()" value="保存缓存配置信息" />&nbsp;&nbsp;<a id="currentUserInfo" href="/phicomm/backend/loadCurrentUserInfo"
+								class="btn btn-primary" target="_blank">查看当前用户信息</a>
+							</td>
+							<td></td>
+						</tr>
+					</table>
+				</form>
+			</div>
+		</div>
+
+	</div>
+
+
+
+
+
+	<script src="https://cdn.bootcss.com/jquery/1.11.3/jquery.min.js"></script>
+	<script
+		src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<script src="http://libs.baidu.com/json/json2/json2.js"></script>
+	<script>
+		$(function() {
+            loadDeaultConfig();
+		});
+
+		function updateConfig(nofityAllUser) {
+			$
+					.ajax({
+						url : "/phicomm/backend/updateConfig/" + nofityAllUser,
+						type : "post",
+						data : JSON.stringify($("#backendParamsForm")
+								.serializeArray()),
+						contentType : 'application/json;charset=utf-8',
+						dataType : "json",
+						success : function(result) {
+							alert(result.message);
+							if(result.success){
+								window.location.reload(true);
+							}
+						},
+						error : function(xhr, status, error) {
+							alert("更新数据失败。");
+						}
+					});
+		}
+
+		function loadDeaultConfig() {
+			$.ajax({
+				url : "/phicomm/backend/loadDeaultConfig",
+				type : "post",
+				dataType : "json",
+				success : function(result) {
+					if (result.status == 'success') {
+						for ( var index in result.resultList) {
+							var phicommConfig = result.resultList[index];
+							addToTable(phicommConfig, (parseInt(index) + 1));
+						}
+					} else {
+						alert(result.message);
+					}
+				},
+				error : function(xhr, status, error) {
+					alert("加载默认数据失败。");
+				}
+			});
+		}
+		
+		function saveServerInfo(){
+			$.ajax({
+				url : "/phicomm/backend/saveServerInfo",
+				type : "post",
+				dataType : "json",
+				success : function(result) {
+					alert(result.message);
+				},
+				error : function(xhr, status, error) {
+					alert("保存服务失败。");
+				}
+			});
+		}
+
+		function addToTable(phicommConfig, index) {
+			var lastTr = $("#table tr:last");
+			var tr = '';
+			if (phicommConfig.type == 'String' || null == phicommConfig.type) {
+			    if(null == phicommConfig.ref){
+                    phicommConfig.ref = "";
+				}
+				tr = "<tr><td>"
+						+ index
+						+ "</td><td>"
+						+ phicommConfig.explain
+						+ "</td><td><input class='form-control' type='text' name="+ phicommConfig.name +" value=" + phicommConfig.ref +"></td></tr>"
+			} else if (phicommConfig.type == 'Long'
+					|| phicommConfig.type == 'Integer') {
+				tr = "<tr><td>"
+						+ index
+						+ "</td><td>"
+						+ phicommConfig.explain
+						+ "</td><td><input class='form-control' min='1' type='number' name="+ phicommConfig.name +" value=" + phicommConfig.ref +"></td></tr>"
+			} else if (phicommConfig.type == 'Boolean') {
+				if (phicommConfig.ref) {
+					tr = "<tr><td>"
+							+ index
+							+ "</td><td>"
+							+ phicommConfig.explain
+							+ "</td><td><input type='radio' name="+ phicommConfig.name +" value='true' checked />已开启&nbsp;<input type='radio' name="+ phicommConfig.name +" value='false' />未开启</td></tr>"
+				} else {
+					tr = "<tr><td>"
+							+ index
+							+ "</td><td>"
+							+ phicommConfig.explain
+							+ "</td><td><input type='radio' name="+ phicommConfig.name +" value='true'  />已开启&nbsp;<input type='radio' name="+ phicommConfig.name +" value='false' checked />未开启</td></tr>"
+				}
+			} else if (phicommConfig.type == 'Map') {
+				var area = '';
+				if (null != phicommConfig.ref) {
+					for ( var ref_index in phicommConfig.ref) {
+						area += ref_index + '|' + phicommConfig.ref[ref_index]
+								+ '\n';
+					}
+				}
+				tr = "<tr><td>"
+						+ index
+						+ "</td><td>"
+						+ phicommConfig.explain
+						+ "</td><td><textarea class='form-control' name="+ phicommConfig.name +"  rows='3' >"
+						+ area + "</textarea></td></tr>";
+			} else if (phicommConfig.type == 'List') {
+				var area = '';
+				if (null != phicommConfig.ref) {
+					for ( var ref_index in phicommConfig.ref) {
+						var obj = phicommConfig.ref[ref_index];
+						if(null == obj){
+							continue;
+						}
+						area += JSON.stringify(obj)
+								+ ',\n';
+					}
+				}
+				tr = "<tr><td>"
+						+ index
+						+ "</td><td>"
+						+ phicommConfig.explain
+						+ "</td><td><textarea class='form-control' name="+ phicommConfig.name +"  rows='3' >"
+						+ area + "</textarea></td></tr>";
+			}
+			if (tr && tr != '') {
+				lastTr.before(tr);
+			}
+		}
+	</script>
+</body>
+</html>
