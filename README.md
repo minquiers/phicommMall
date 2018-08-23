@@ -1,4 +1,4 @@
-该项目基于httpclientutil https://github.com/Arronlong/httpclientutil <br />
+该项目基于tensorflow和httpclientutil 支持斐讯图片验证码识别 https://github.com/Arronlong/httpclientutil <br />
 
 部署说明:<br />
 1.返利配置在：PhicommRebate.java<br />
